@@ -17,3 +17,7 @@
 
 # Check the error log:
     $ docker logs 402a0f984fbf <- container ID
+
+# moduler 
+    mkdir -p ~/Programming/Python/django-startup/settings/auth
+    sudo docker compose run web django-admin startapp auth settings/auth
