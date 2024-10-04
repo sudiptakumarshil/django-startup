@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  User Profile
+{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <h4>Profile Page</h4>
+    <p>{{ user }}</p>
+    <a href="{% url 'user.password_change' %}">Change Password</a> <br />
+    <a href="{% url 'user.password_change_except_old' %}">Forgot Password?</a> <br />
+    <a href="{% url 'user.update_profile' %}">Update Profile</a>
+
+    {% load crispy_forms_tags %}
+    {% url 'user.update_profile' as profile_url %}
+    {% if request.path == profile_url %}
+      <div class="row mt-4">
+        <div class="col-md-4 col-lg-4 col-sm-4"></div>
+        <div class="col-md-4 col-lg-4 col-sm-4">
+          <form action="" method="post" novalidate>
+            {% csrf_token %}
+            {{ form|crispy }}
+            <button type="submit" class="btn btn-primary btn-sm">Submit</button>
+          </form>
+        </div>
+        <div class="col-md-4 col-lg-4 col-sm-4"></div>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

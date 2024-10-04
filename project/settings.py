@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "core",
     "settings.user_auth",
     "settings.roles",
+    "settings.permissions",
 ]
 
 MIDDLEWARE = [
