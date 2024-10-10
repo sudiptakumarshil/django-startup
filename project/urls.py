@@ -22,5 +22,6 @@ from core.views import HomeView
 urlpatterns = [
     path("super-admin/", admin.site.urls),
     path("", HomeView.as_view(), name="home"),
-    path('auth/', include('settings.user_auth.urls'))
+    path("auth/", include("settings.user_auth.urls")),
+    path("roles/", include("settings.roles.urls")),
 ]
