@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .forms import RegisterForm, ChangeUserForm
+from .forms import RegisterForm
 from django.contrib import messages
 from django.contrib.auth.forms import (
     AuthenticationForm,
@@ -7,30 +7,31 @@ from django.contrib.auth.forms import (
     SetPasswordForm,
 )
 from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
-from .repositories.user_register_repository import UserRegisterRepository
-from django.http import HttpResponse
+from django.http import JsonResponse
+from django.views import View
+from .services.user_service import UserService
+from .repositories.user_repository import UserRepository
+import json
 
 
-def user_register(request):
-    user_repository = UserRegisterRepository()
-    data = {"name": "Sudipto", "age": 23}
-    return HttpResponse(
-        user_repository.registerUser(data), content_type="application/json"
-    )
+class UserRegisterView(View):
 
-    # if not request.user.is_authenticated:
-    #     if request.method == "POST":
-    #         form = RegisterForm(request.POST)
-    #         if form.is_valid():
-    #             form.save()
-    #             messages.success(request, "User created Successfully!!")
-    #             print(form.cleaned_data)
-    #         else:
-    #             messages.warning(request, form.errors.as_text())
-    #             print(form.errors)
-    #     form = RegisterForm()
-    #     return render(request, "register.html", {"form": form})
-    # return redirect("user.profile")
+    def __init__(self, user_service=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user_service = user_service or UserService(repository=UserRepository())
+
+    def get(self, request):
+        return render(request, "register.html")
+
+    def post(self, request, id=None):
+        data = json.loads(request.body)
+        form = RegisterForm(data)
+        if form.is_valid():
+            result = self.user_service.register_user(form.cleaned_data)
+            return JsonResponse(result, safe=False)
+        else:
+            errors = form.errors.as_json()
+            return JsonResponse({"success": False, "errors": errors}, status=400)
 
 
 def user_login(request):

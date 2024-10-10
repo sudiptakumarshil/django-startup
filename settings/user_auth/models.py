@@ -8,7 +8,9 @@ class UserInfo(models.Model):
         User, related_name="user_info", on_delete=models.CASCADE
     )
     roles = models.ManyToManyField(Roles, related_name="users")
-    address = models.TextField()
+    address = (models.TextField())
+    gender = models.SmallIntegerField(db_comment="1=Male,2=Female,3=Others")
+    dob = models.DateField(auto_now=False)
     admin = models.ForeignKey(User, related_name="admin", on_delete=models.CASCADE)
 
 

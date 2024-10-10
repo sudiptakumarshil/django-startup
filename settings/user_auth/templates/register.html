@@ -5,25 +5,176 @@
 {% endblock %}
 
 {% block content %}
-  {% load crispy_forms_tags %}
-  <div class="container">
+  {% comment %} <div class="container">
     <div class="row mt-4">
       <div class="col-md-4 col-lg-4 col-sm-4"></div>
       <div class="col-md-4 col-lg-4 col-sm-4">
-        <form action="" method="post" novalidate>
-          {% csrf_token %}
-          {{ form|crispy }}
-
-          {% comment %} {% for fm in form %}
-            {{ fm.label_tag }}
-            {{ fm }}
-            {{ fm.errors|striptags }}
-          {% endfor %} {% endcomment %}
-
-          <button type="submit" class="btn btn-primary btn-sm">Submit</button>
-        </form>
+        <div x-data="formHandler()">
+          <form @submit.prevent="submitForm">
+              <div>
+                  <label for="name">Name:</label>
+                  <input type="text" class="form-control" id="name" x-model="formData.name"/>
+              </div>
+              <div>
+                  <label for="email">Email:</label>
+                  <input type="email" class="form-control" id="email" x-model="formData.email"/>
+              </div>
+              <div>
+                  <label for="address.street">Street:</label>
+                  <input type="text" class="form-control" id="street" x-model="formData.address.street"/>
+              </div>
+              <div>
+                  <label for="address.city">City:</label>
+                  <input type="text" class="form-control" id="city" x-model="formData.address.city"/>
+              </div>
+              <div>
+                  <label for="address.zip">Zip Code:</label>
+                  <input type="text" class="form-control" id="zip" x-model="formData.address.zip"/>
+              </div>
+              <button type="submit">Submit</button>
+          </form>
+  
+          <div x-show="submitted" class="mt-4">
+              <p>Form submitted successfully!</p>
+              <pre x-text="JSON.stringify(formData, null, 2)"></pre>
+          </div>
+  
+          <div x-show="error" class="mt-4 text-red-500">
+              <p>Error: <span x-text="error"></span></p>
+          </div>
+      </div>
       </div>
       <div class="col-md-4 col-lg-4 col-sm-4"></div>
     </div>
+  </div> {% endcomment %}
+
+  <div class="container d-flex align-items-center justify-content-center" style="min-height: 100vh">
+    <div class="d-flex flex-column justify-content-between">
+      <div class="row justify-content-center">
+        <div class="col-lg-6 col-xl-5 col-md-10">
+          <div class="card card-default mb-0">
+            <div class="card-header pb-0">
+              <div class="app-brand w-100 d-flex justify-content-center border-bottom-0"></div>
+            </div>
+            <div class="card-body px-5 pb-5 pt-0" x-data="formHandler()" x-init="initSelect()">
+              <h4 class="text-dark text-center mb-5">Sign Up</h4>
+              <form @submit.prevent="submitForm">
+                <div class="row">
+                  <div class="form-group col-md-12 mb-4">
+                    <label>Username</label>
+                    <input type="text" x-model="formData.username" class="form-control input-lg" placeholder="Username"/>
+                  </div>
+                  <div class="form-group col-md-12 mb-4">
+                    <label>Email</label>
+                    <input type="email" x-model="formData.email" class="form-control input-lg" placeholder="Email"/>
+                  </div>
+                  <div class="form-group col-md-12 mb-4">
+                    <label>First Name</label>
+                    <input type="text" x-model="formData.first_name" class="form-control input-lg" placeholder="First Name"/>
+                  </div>
+                  <div class="form-group col-md-12 mb-4">
+                    <label>Last Name</label>
+                    <input type="text" x-model="formData.last_name" class="form-control input-lg" placeholder="Last Name"/>
+                  </div>
+                  <div class="form-group col-md-12 mb-4">
+                    <label>Gender</label>
+                    <select class="form-control select_2" id="dob" x-model="formData.gender">
+                      <option value="1">Male</option>
+                      <option value="2">Female</option>
+                      <option value="3">Others</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group col-md-12">
+                    <label>Birth Date</label>
+                    <input type="text" x-model="formData.dob" class="form-control input-lg date_picker" placeholder="Birth Date"/>
+                  </div>
+
+                  <div class="form-group col-md-12">
+                    <label>Password</label>
+                    <input type="password" x-model="formData.password1" class="form-control input-lg" placeholder="Password"/>
+                  </div>
+
+                  <div class="form-group col-md-12">
+                    <label>Confirm Password</label>
+                    <input type="password" x-model="formData.password2" class="form-control input-lg" placeholder="Confirm Password"/>
+                  </div>
+
+                  <div class="col-md-12">
+                    <button type="submit" class="btn btn-primary btn-pill mb-4">Sign Up</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+{% endblock %}
+
+{% block script %}
+<script>
+  function formHandler() {
+    const csrftoken = getCookie('csrftoken');
+    axios.defaults.headers.common['X-CSRFToken'] = csrftoken;
+
+      const initObj = {
+          username: '',
+          email: '',
+          first_name:'',
+          last_name:'',
+          gender:'1',
+          dob:'',
+          password1:'',
+          password2:'',
+      };
+      
+      return {
+          formData: Object.assign({}, initObj),
+          submitted: false,
+          error: null,
+          initSelect() {
+            const self = this;
+            $('#dob').on('change', function() {
+                self.formData.gender = $(this).val();
+            });
+        },
+          async submitForm() {
+              try {
+                const response = await axios.post('{% url "auth.register" %}', this.formData, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                  this.submitted = true;
+                  this.error = null;
+
+                  this.formData = Object.assign({}, initObj);
+              } catch (err) {
+                  if (err.response && err.response.status === 400) {
+                    this.error = "";
+                    const errors = JSON.parse(err.response.data.errors);
+
+                    for (let obj in errors) {
+                       if(obj == 'password1') this.error += 'password'+': '+errors[obj][0]['message']+ '\n\n';
+                       else if(obj == 'password2') this.error += 'confirm password'+': '+errors[obj][0]['message']+ '\n\n';
+                       else this.error += obj+': '+errors[obj][0]['message']+ '\n\n';
+                    }
+                    alertErrorMessage(this.error); 
+
+                  }
+                  
+                  else if (err.response && err.response.status === 500){
+                    alertErrorMessage("Internal Server Error. Please check the error in the console: press: F12"); 
+                  }
+                  else {
+                      this.error = err.response?.data?.message || 'An error occurred';
+                  }
+                  this.submitted = false;
+              }
+          }
+      };
+  }
+</script>
 {% endblock %}
